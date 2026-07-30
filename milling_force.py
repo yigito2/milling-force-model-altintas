@@ -17,6 +17,31 @@ def tand(x):
 def atand(x):
     return np.degrees(np.arctan(x))
 
+def Ft_integral(phi, ft, Ktc, Kte):
+    return -(1.0) * (-Ktc * ft * np.cos(phi) + Kte * phi)
+
+
+def Fx_integral(phi, ft, Ktc, Krc, Kte, Kre):
+    return (
+        (-ft / 4.0)
+        * (-Ktc * np.cos(2 * phi) + Krc * ((2 * phi) - np.sin(2 * phi)))
+        - Kte * np.sin(phi)
+        + Kre * np.cos(phi)
+    )
+
+
+def Fy_integral(phi, ft, Ktc, Krc, Kte, Kre):
+    return (
+        (ft / 4.0)
+        * (Ktc * ((2 * phi) - np.sin(2 * phi)) + Krc * np.cos(2 * phi))
+        - Kte * np.cos(phi)
+        - Kre * np.sin(phi)
+    )
+
+
+def Fz_integral(phi, ft, Kac, Kae):
+    return ft * Kac * np.cos(phi) - Kae * phi
+
 
 def milling_force(
     Z,
@@ -223,6 +248,104 @@ def milling_force(
     print("Third tooth =", phij[0, 2])
     print("Fourth tooth =", phij[0, 3])
 
+    for phi in range(360):
+
+        for j in range(N):
+
+            phi_current = phij[phi, j]
+
+            # OUT OF CUT
+            if phi_current < phist or phi_current > phiex:
+                continue
+
+            Zd = 0.0
+            Zu = Z
+
+            phid = phi_current - Zd * kbeta
+            phiu = phi_current - Zu * kbeta
+
+            Ftj[phi, j] = (
+                -(1 / kbeta)
+                * (
+                    Ft_integral(phiu, ft, Ktc, Kte)
+                    - Ft_integral(phid, ft, Ktc, Kte)
+                )
+            )
+
+            Fxj[phi, j] = (
+                -(1 / kbeta)
+                * (
+                    Fx_integral(
+                        phiu,
+                        ft,
+                        Ktc,
+                        Krc,
+                        Kte,
+                        Kre,
+                    )
+                    -
+                    Fx_integral(
+                        phid,
+                        ft,
+                        Ktc,
+                        Krc,
+                        Kte,
+                        Kre,
+                    )
+                )
+            )
+
+            Fyj[phi, j] = (
+                -(1 / kbeta)
+                * (
+                    Fy_integral(
+                        phiu,
+                        ft,
+                        Ktc,
+                        Krc,
+                        Kte,
+                        Kre,
+                    )
+                    -
+                    Fy_integral(
+                        phid,
+                        ft,
+                        Ktc,
+                        Krc,
+                        Kte,
+                        Kre,
+                    )
+                )
+            )
+
+            Fzj[phi, j] = (
+                -(1 / kbeta)
+                * (
+                    Fz_integral(
+                        phiu,
+                        ft,
+                        Kac,
+                        Kae,
+                    )
+                    -
+                    Fz_integral(
+                        phid,
+                        ft,
+                        Kac,
+                        Kae,
+                    )
+                )
+            )
+
+        Ft[phi] = np.sum(Ftj[phi, :])
+
+        Fx[phi] = np.sum(Fxj[phi, :])
+        Fy[phi] = np.sum(Fyj[phi, :])
+        Fz[phi] = np.sum(Fzj[phi, :])
+
+        T[phi] = R * Ft[phi]
+        P[phi] = V * Ft[phi]
+
     active_count = 0
 
     for phi in range(360):
@@ -242,4 +365,96 @@ def milling_force(
         active_count
     )
 
-    return None
+    print("\nForces calculated")
+
+    print("Fx mean =", np.mean(Fx))
+    print("Fy mean =", np.mean(Fy))
+    print("Fz mean =", np.mean(Fz))
+
+    z = np.zeros((360, N))
+
+    for j in range(N):
+
+        for phi_d in range(360):
+
+            if MS == 1:
+
+                z[phi_d, j] = (
+                    phi1[phi_d] + j * phip
+                ) / (np.tan(np.radians(beta)) / (2 * R))
+
+            else:
+
+                z[phi_d, j] = (
+                    -np.pi + phi1[phi_d] + j * phip
+                ) / (np.tan(np.radians(beta)) / (2 * R))
+
+            if z[phi_d, j] > Z or z[phi_d, j] < 0:
+                z[phi_d, j] = 0
+
+    Mx = np.sum(Fyj * (L - z), axis=1) / 1000.0
+    My = np.sum(Fxj * (L - z), axis=1) / 1000.0
+
+    Mx_ave = np.mean(Mx)
+
+    print("\nMoment results")
+    print("Mean Mx =", Mx_ave)
+
+    plt.figure(figsize=(10, 6))
+
+    plt.plot(phi1, Fx, label="Fx")
+    plt.plot(phi1, Fy, label="Fy")
+    plt.plot(phi1, Fz, label="Fz")
+
+    plt.xlabel("Rotation (rad)")
+    plt.ylabel("Force (N)")
+    plt.legend()
+    plt.grid(True)
+
+    plt.show()
+
+    plt.figure(figsize=(10, 6))
+
+    plt.plot(phi1, Fx, label="Fx")
+    plt.plot(phi1, Fy, label="Fy")
+    plt.plot(phi1, Fz, label="Fz")
+
+    plt.xlabel("Rotation (rad)")
+    plt.ylabel("Force (N)")
+    plt.legend()
+    plt.grid(True)
+
+    plt.show()
+
+    z = np.zeros((360, N))
+
+    for j in range(N):
+
+        for phi_d in range(360):
+
+            if MS == 1:
+
+                z[phi_d, j] = (
+                    phi1[phi_d]
+                    + j * phip
+                ) / (np.tan(np.radians(beta)) / (2 * R))
+
+            else:
+
+                z[phi_d, j] = (
+                    -np.pi
+                    + phi1[phi_d]
+                    + j * phip
+                ) / (np.tan(np.radians(beta)) / (2 * R))
+
+            if z[phi_d, j] > Z or z[phi_d, j] < 0:
+                z[phi_d, j] = 0
+        Mx = np.sum(Fyj * (L - z), axis=1) / 1000.0
+    My = np.sum(Fxj * (L - z), axis=1) / 1000.0
+
+    Mx_ave = np.mean(Mx)
+
+    print("\nMoment results")
+    print("Mean Mx =", Mx_ave)
+
+    return Mx, My, Mx_ave

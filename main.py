@@ -1,6 +1,6 @@
 from milling_force import milling_force
 
-milling_force(
+Mx, My, Mx_ave = milling_force(
     Z=5.08,
     b=9.05,
     ft=0.05,
@@ -16,3 +16,5 @@ milling_force(
     Kae=2,
     L=150,
 )
+
+print("\nReturned Mx_ave =", Mx_ave)
