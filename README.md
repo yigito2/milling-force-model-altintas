@@ -96,3 +96,14 @@ Then, as in the original MATLAB implementation, the model uses calibrated force 
 ### Tool Bending Moments
 
 ![Project Banner](assets/moment_plot.png)
+
+
+## References
+
+1. Altintas, Y. *Manufacturing Automation: Metal Cutting Mechanics, Machine Tool Vibrations, and CNC Design*. Cambridge University Press, 2012.  
+   DOI: https://doi.org/10.1017/CBO9780511843723
+
+2. Altintas, Y. “Modeling Approaches and Software for Predicting the Performance of Milling Operations at MAL-UBC.” *Machining Science and Technology*, Vol. 4, No. 3, pp. 445–478, 2000.  
+   DOI: https://doi.org/10.1080/10940340008945718
+
+3. Original MATLAB milling force model used as the basis for this educational Python port.
