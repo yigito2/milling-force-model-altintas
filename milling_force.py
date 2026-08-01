@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-
+from pathlib import Path
 
 def sind(x):
     return np.sin(np.radians(x))
@@ -511,6 +511,10 @@ def milling_force(
     print("Mean Mx =", Mx_ave)
     print("Mean My =", np.mean(My))
 
+    output_dir = Path("assets")
+    output_dir.mkdir(exist_ok=True)
+
+
     plt.figure(figsize=(10, 6))
     plt.plot(phi1, Fx, label="Fx")
     plt.plot(phi1, Fy, label="Fy")
@@ -520,6 +524,7 @@ def milling_force(
     plt.legend()
     plt.grid(True)
     plt.tight_layout()
+    plt.savefig(output_dir / "force_plot.png", dpi=300, bbox_inches="tight")
     plt.show()
 
     plt.figure(figsize=(10, 6))
@@ -530,6 +535,7 @@ def milling_force(
     plt.legend()
     plt.grid(True)
     plt.tight_layout()
+    plt.savefig(output_dir / "moment_plot.png", dpi=300, bbox_inches="tight")
     plt.show()
 
     return Mx, My, Mx_ave
