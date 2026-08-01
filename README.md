@@ -1,7 +1,6 @@
 # Milling Force Model (Altintas)
 
-<!-- Banner will be added later -->
-<!-- assets/banner.png -->
+![Project Banner](assets/banner.png)
 
 A Python implementation of an Altintas-style mechanistic milling force model for helical end milling.
 
